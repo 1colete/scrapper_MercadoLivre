@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import json
 import re
 
-thislist = ["apple", "banana", "cherry"]
 otherList= [
     "https://produto.mercadolivre.com.br/MLB-1521639002-tapete-bandeja-porta-malas-nova-tracker-2021-original-gm-_JM?searchVariation=55732461089#searchVariation=55732461089&position=1&type=item&tracking_id=8cb0a2db-c66e-4a58-9e9b-5f027b7e3e17",
     "https://produto.mercadolivre.com.br/MLB-1205988099-aditivo-radiador-pronto-para-uso-acdelco-1-litro-laranja-_JM#position=2&type=item&tracking_id=8cb0a2db-c66e-4a58-9e9b-5f027b7e3e17",
@@ -13,7 +12,7 @@ otherList= [
 
 # for x in otherList:
 #   print(x)
-url = "https://produto.mercadolivre.com.br/MLB-1563289325-emblema-lt-tampa-traseira-tracker-original-gm-2021-_JM#position=4&type=item&tracking_id=8cb0a2db-c66e-4a58-9e9b-5f027b7e3e17"
+url = "https://produto.mercadolivre.com.br/MLB-1597219305-emblema-lt-nova-tracker-2021-original-gm-_JM#reco_item_pos=0&reco_backend=machinalis-seller-items-pdp&reco_backend_type=low_level&reco_client=vip-seller_items-above&reco_id=0d3d6cb8-96e4-4142-bf63-f1840e3c7fc3"
 
 
 PARAMS = {
@@ -32,28 +31,51 @@ PARAMS = {
 page = requests.get(url= url, headers = PARAMS)
 soup = BeautifulSoup(page.content, 'lxml')
 
-print ()
-
-titulo = soup.title.contents[0]
-
+#titulo e preço do produto
 try:
-    itensVendidos = soup.findAll("dl", class_="vip-title-info")[0].findAll("div",class_="item-conditions")[0].contents[0]
-    itensVendidos = re.findall("\d+", itensVendidos)[0]
+    titulo = soup.title.contents[0]
+    fraction = soup.findAll("span", class_="price-tag-fraction")[0].contents[0]
+    cents = soup.findAll("span", class_="price-tag-cents")[0].contents[0]
+    price = str("R$" + fraction + "," + cents)
 except:
-    itensVendidos = ""
+    titulo = "x"
+    price = "x"
 
-fraction = soup.findAll("span", class_="price-tag-fraction")[0].contents[0]
-cents = soup.findAll("span", class_="price-tag-cents")[0].contents[0]
-price = str("R$" + fraction + "," + cents)
-
+#quantidade disponivel e itens vendidos
 try:
-    qtdDisponivel = soup.findAll("span", class_="dropdown-quantity-available")[0].contents[0]
+    qtdDisponivel = soup.findAll("span", class_="ui-pdp-buybox__quantity__available")[0].contents[0]
+    qtdDisponivel = qtdDisponivel[1:-1]
+
+    itensVendidos = soup.findAll("span", class_="ui-pdp-subtitle")[0].contents[0]
+    itensVendidos = itensVendidos.split("|")[1]
 except:
-    qtdDisponivel = ""
-    
-vendedor = soup.findAll("a", class_="reputation-view-more card-block-link")[0]["href"]
+    itensVendidos = "x"
+    qtdDisponivel = "x"
 
-caracteristicas = soup.findAll("li", class_="specs-item specs-item-primary")[2]
-caracteristicas = re.findall("\d+", caracteristicas)
+#vendedor
+try:
+    vendedor = soup.findAll("div", class_="ui-box-component ui-box-component-pdp__visible--desktop")[0]
+ 
+    for link in vendedor.find_all('a'):
+        if link is not None:
+            vendedor = link['href']
+except:
+    vendedor = "x"
 
-print(caracteristicas)
+#caracteristicas do produto
+try:
+    caracteristicas = soup.findAll("", class_="specs-item specs-item-primary")[2]
+    caracteristicas = re.findall("\d+", caracteristicas)
+except:
+    caracteristicas = "x"
+
+print(titulo,  "\n",price, "\n", qtdDisponivel, "\n", itensVendidos, "\n", caracteristicas, "\n", vendedor)
+
+""" json = {
+    "titulo" : titulo,
+    "preço": price,
+    "itens vendidos": itensVendidos,
+}
+ """
+
+# listaJson.append(json)
